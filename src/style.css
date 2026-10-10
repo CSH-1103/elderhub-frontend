@@ -1,0 +1,83 @@
+/* ===== 全局样式：浅色主题 ===== */
+
+/* 主色：柔和青绿（Element Plus 变量覆盖） */
+:root {
+  --el-color-primary: #2f9e8f;
+  --el-color-primary-light-3: #62b8ac;
+  --el-color-primary-light-5: #97d1c8;
+  --el-color-primary-light-7: #c3e5df;
+  --el-color-primary-light-8: #d9efeb;
+  --el-color-primary-light-9: #ecf7f5;
+  --el-color-primary-dark-2: #268074;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', Arial, sans-serif;
+  background-color: #f5f7fa;
+  color: #303133;
+}
+
+/* 通用页面容器 */
+.page-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.06);
+}
+
+/* 表格工具条（搜索区 + 按钮区） */
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.toolbar-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 床位图配色 */
+.bed-free {
+  background: #e8f7f1;
+  border: 1px solid #b3e0d2;
+  color: #2f9e8f;
+}
+.bed-occupied {
+  background: #e8f1fd;
+  border: 1px solid #b8d4f8;
+  color: #3d7fd9;
+}
+.bed-away {
+  background: #fdf3e7;
+  border: 1px solid #f3d5ab;
+  color: #d48806;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d7de;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

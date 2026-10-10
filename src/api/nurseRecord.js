@@ -1,0 +1,21 @@
+import request from './request'
+
+/**
+ * 护理记录（管家 /nurse/nurse-record、管理员 /admin/nurse-record）
+ * VO 为驼峰：{ id, customerId, itemId, userId, nursingName, nursingTime, nursingContent, nursingCount }
+ */
+
+/** 管家：录入护理记录（NurseDailyController 版本，同时扣减客户项目次数），userId 为 query */
+export const butlerSaveRecord = (dto, userId) =>
+  request.post('/nurse/nurse-record/save', dto, { params: { userId } })
+
+/** 管家：查看自己客户的护理记录（/nurse/nurse-record-mine，后端按 userId 返回） */
+export const butlerListRecords = (customerId, userId) =>
+  request.get(`/nurse/nurse-record-mine/list/${customerId}`, { params: { userId } })
+
+/** 管理员：查看客户护理记录 */
+export const adminListRecords = (customerId) =>
+  request.get(`/admin/nurse-record/list/${customerId}`)
+
+/** 管理员：删除护理记录（逻辑删除） */
+export const adminRemoveRecord = (id) => request.delete(`/admin/nurse-record/remove/${id}`)
