@@ -113,7 +113,7 @@ const routes = [
       {
         path: 'preference',
         name: 'Preference',
-        component: () => import('@/views/placeholder/index.vue'),
+        component: () => import('@/views/preference/index.vue'),
         meta: { title: '客户偏好', roles: ['ADMIN'] },
       },
       // ---- 系统管理（ADMIN）----
@@ -152,11 +152,6 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const userStore = useUserStore()
-
-  // ⚠️ 临时调试：访问餐饮页面时自动注入 mock 登录态（预览用，上线前删除）
-  if (to.path.startsWith('/food') && !userStore.isLogin) {
-    userStore.setLogin({ token: 'dev-mock', userId: 1, username: 'admin', role: 'ADMIN' })
-  }
 
   // 1. 未登录：只能去公开页（login / 404）
   if (!to.meta.public && !userStore.isLogin) {
