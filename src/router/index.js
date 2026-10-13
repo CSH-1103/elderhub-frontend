@@ -103,11 +103,11 @@ const routes = [
         component: () => import('@/views/nursework/Backdown.vue'),
         meta: { title: '退住申请', roles: ['USER'] },
       },
-      // ---- 餐饮占位（后端暂无 Controller）----
+      // ---- 餐饮管理 ----
       {
         path: 'food',
         name: 'Food',
-        component: () => import('@/views/placeholder/index.vue'),
+        component: () => import('@/views/food/index.vue'),
         meta: { title: '餐饮管理', roles: ['ADMIN'] },
       },
       {
@@ -152,6 +152,11 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const userStore = useUserStore()
+
+  // ⚠️ 临时调试：访问餐饮页面时自动注入 mock 登录态（预览用，上线前删除）
+  if (to.path.startsWith('/food') && !userStore.isLogin) {
+    userStore.setLogin({ token: 'dev-mock', userId: 1, username: 'admin', role: 'ADMIN' })
+  }
 
   // 1. 未登录：只能去公开页（login / 404）
   if (!to.meta.public && !userStore.isLogin) {
