@@ -141,6 +141,16 @@
                 <el-option label="午餐" :value="2" />
                 <el-option label="晚餐" :value="3" />
               </el-select>
+              <el-select
+                v-model="mealQuery.status"
+                placeholder="状态"
+                style="width: 110px"
+                @change="mealSearch"
+              >
+                <el-option label="启用" :value="1" />
+                <el-option label="停用" :value="2" />
+                <el-option label="全部" :value="0" />
+              </el-select>
               <el-button type="primary" :icon="Search" @click="mealSearch">查询</el-button>
             </div>
             <el-button type="primary" :icon="Plus" @click="openMealAdd">新增膳食</el-button>
@@ -160,9 +170,23 @@
             <el-table-column prop="taste" label="口味要求" min-width="140">
               <template #default="{ row }">{{ row.taste || '—' }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="140" fixed="right">
+            <el-table-column label="状态" width="90">
+              <template #default="{ row }">
+                <el-tag :type="row.status === 1 ? 'success' : 'info'" effect="light">
+                  {{ row.status === 1 ? '启用' : '停用' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" @click="openMealEdit(row)">编辑</el-button>
+                <el-button
+                  link
+                  :type="row.status === 1 ? 'warning' : 'success'"
+                  @click="doMealToggleStatus(row)"
+                >
+                  {{ row.status === 1 ? '停用' : '启用' }}
+                </el-button>
                 <el-popconfirm title="确认删除？" @confirm="doMealRemove(row)">
                   <template #reference>
                     <el-button link type="danger">删除</el-button>
@@ -223,12 +247,124 @@
           </template>
         </el-dialog>
       </el-tab-pane>
+
+      <!-- ============ Tab 3: 客户膳食配置 ============ -->
+      <el-tab-pane label="客户膳食配置" name="customerMeal">
+        <div class="page-card">
+          <div class="table-toolbar">
+            <div class="toolbar-filters">
+              <el-input
+                v-model="cmQuery.customerName"
+                placeholder="客户姓名"
+                clearable
+                style="width: 160px"
+                @keyup.enter="cmSearch"
+                @clear="cmSearch"
+              />
+              <el-button type="primary" :icon="Search" @click="cmSearch">查询</el-button>
+            </div>
+            <el-button type="primary" :icon="Plus" @click="openCmAdd">新增配置</el-button>
+          </div>
+
+          <el-table v-loading="cmLoading" :data="cmList" border stripe>
+            <el-table-column prop="id" label="ID" width="60" />
+            <el-table-column prop="customerName" label="客户" min-width="110">
+              <template #default="{ row }">{{ row.customerName || `客户#${row.customerId}` }}</template>
+            </el-table-column>
+            <el-table-column prop="weekDay" label="星期" width="100" />
+            <el-table-column label="餐次" width="100">
+              <template #default="{ row }">
+                <el-tag :type="MEAL_TYPE_TAG[row.mealType]" effect="light">
+                  {{ MEAL_TYPE_LABEL[row.mealType] || '—' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="foodName" label="食品" min-width="140">
+              <template #default="{ row }">{{ row.foodName || `食品#${row.foodId}` }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="140" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" @click="openCmEdit(row)">编辑</el-button>
+                <el-popconfirm title="确认删除该配置？" @confirm="doCmRemove(row)">
+                  <template #reference>
+                    <el-button link type="danger">删除</el-button>
+                  </template>
+                </el-popconfirm>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <div style="margin-top: 14px; display: flex; justify-content: flex-end">
+            <Pagination
+              v-model:page="cmQuery.pageNum"
+              v-model:size="cmQuery.pageSize"
+              :total="cmTotal"
+              @change="loadCustomerMeals"
+            />
+          </div>
+        </div>
+
+        <!-- 客户膳食配置 新增/编辑 -->
+        <el-dialog v-model="cmDialogVisible" :title="cmIsEdit ? '编辑配置' : '新增配置'" width="480px">
+          <el-form ref="cmFormRef" :model="cmForm" :rules="cmRules" label-width="90px">
+            <el-form-item label="客户" prop="customer_id">
+              <el-select
+                v-model="cmForm.customer_id"
+                filterable
+                :loading="cmCustomersLoading"
+                placeholder="选择在住客户（输入可搜索）"
+                style="width: 100%"
+                :disabled="cmIsEdit"
+              >
+                <el-option
+                  v-for="c in cmCustomers"
+                  :key="c.customerId"
+                  :label="`${c.customerName}（${c.roomNo || '—'}房）`"
+                  :value="c.customerId"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="星期" prop="week_day">
+              <el-select v-model="cmForm.week_day" style="width: 100%" placeholder="请选择">
+                <el-option v-for="d in WEEK_DAYS" :key="d" :label="d" :value="d" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="餐次" prop="meal_type">
+              <el-radio-group v-model="cmForm.meal_type">
+                <el-radio :value="1">早餐</el-radio>
+                <el-radio :value="2">午餐</el-radio>
+                <el-radio :value="3">晚餐</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="食品" prop="food_id">
+              <el-select
+                v-model="cmForm.food_id"
+                filterable
+                :loading="foodOptionsLoading"
+                placeholder="选择食品（输入可搜索）"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="f in foodOptions"
+                  :key="f.id"
+                  :label="`${f.food_name}（${f.food_type || '—'}）`"
+                  :value="f.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button @click="cmDialogVisible = false">取消</el-button>
+            <el-button type="primary" :loading="cmSaving" @click="doCmSave">保存</el-button>
+          </template>
+        </el-dialog>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
 import {
@@ -240,7 +376,13 @@ import {
   saveMeal,
   updateMeal,
   removeMeal,
+  updateMealStatus,
+  listCustomerMeals,
+  saveCustomerMeal,
+  updateCustomerMeal,
+  removeCustomerMeal,
 } from '@/api/food'
+import { listDetails } from '@/api/bed'
 import Pagination from '@/components/Pagination.vue'
 
 /* ============ 常量 ============ */
@@ -321,7 +463,7 @@ async function doFoodRemove(row) {
 }
 
 /* ============ 膳食日历 ============ */
-const mealQuery = reactive({ weekDay: null, mealType: null, pageNum: 1, pageSize: 10 })
+const mealQuery = reactive({ weekDay: null, mealType: null, status: 1, pageNum: 1, pageSize: 10 })
 const mealList = ref([])
 const mealTotal = ref(0)
 const mealLoading = ref(false)
@@ -405,6 +547,117 @@ async function doMealRemove(row) {
   ElMessage.success('已删除')
   loadMeals()
 }
+async function doMealToggleStatus(row) {
+  const target = row.status === 1 ? 2 : 1
+  await updateMealStatus(row.id, target)
+  ElMessage.success(target === 1 ? '已启用' : '已停用')
+  loadMeals()
+}
+
+/* ============ 客户膳食配置 ============ */
+const cmQuery = reactive({ customerName: '', pageNum: 1, pageSize: 10 })
+const cmList = ref([])
+const cmTotal = ref(0)
+const cmLoading = ref(false)
+
+const cmDialogVisible = ref(false)
+const cmIsEdit = ref(false)
+const cmFormRef = ref()
+const cmSaving = ref(false)
+const emptyCmForm = () => ({ id: null, customer_id: null, week_day: '', meal_type: 1, food_id: null })
+const cmForm = reactive(emptyCmForm())
+const cmRules = {
+  customer_id: [{ required: true, message: '请选择客户', trigger: 'change' }],
+  week_day: [{ required: true, message: '请选择星期', trigger: 'change' }],
+  meal_type: [{ required: true, message: '请选择餐次', trigger: 'change' }],
+  food_id: [{ required: true, message: '请选择食品', trigger: 'change' }],
+}
+
+// 在住客户下拉（customerType=0 查全部）
+const cmCustomers = ref([])
+const cmCustomersLoading = ref(false)
+async function loadCmCustomers() {
+  cmCustomersLoading.value = true
+  try {
+    const page = await listDetails({ status: 1, customerType: 0, pageNum: 1, pageSize: 500 })
+    const seen = new Set()
+    cmCustomers.value = (page.list || []).filter((x) => {
+      if (seen.has(x.customerId)) return false
+      seen.add(x.customerId)
+      return true
+    })
+  } catch {
+    /* axios 拦截器已弹 ElMessage.error */
+  } finally {
+    cmCustomersLoading.value = false
+  }
+}
+
+async function loadCustomerMeals() {
+  cmLoading.value = true
+  try {
+    const page = await listCustomerMeals({ ...cmQuery })
+    cmList.value = page.list
+    cmTotal.value = page.total
+  } catch {
+    /* axios 拦截器已弹 ElMessage.error */
+  } finally {
+    cmLoading.value = false
+  }
+}
+function cmSearch() {
+  cmQuery.pageNum = 1
+  loadCustomerMeals()
+}
+function openCmAdd() {
+  cmIsEdit.value = false
+  Object.assign(cmForm, emptyCmForm())
+  cmDialogVisible.value = true
+  loadCmCustomers()
+  loadFoodOptions()
+}
+function openCmEdit(row) {
+  cmIsEdit.value = true
+  Object.assign(cmForm, {
+    id: row.id,
+    customer_id: row.customerId,
+    week_day: row.weekDay,
+    meal_type: row.mealType,
+    food_id: row.foodId,
+  })
+  cmDialogVisible.value = true
+  loadCmCustomers()
+  loadFoodOptions()
+}
+async function doCmSave() {
+  await cmFormRef.value.validate().catch(() => { throw new Error('validate') })
+  cmSaving.value = true
+  try {
+    if (cmIsEdit.value) {
+      await updateCustomerMeal({ ...cmForm })
+      ElMessage.success('修改成功')
+    } else {
+      await saveCustomerMeal({ ...cmForm })
+      ElMessage.success('新增成功')
+    }
+    cmDialogVisible.value = false
+    loadCustomerMeals()
+  } catch (e) {
+    // validate 失败或 axios 已弹过提示
+  } finally {
+    cmSaving.value = false
+  }
+}
+async function doCmRemove(row) {
+  await removeCustomerMeal(row.id)
+  ElMessage.success('已删除')
+  loadCustomerMeals()
+}
+
+watch(activeTab, (name) => {
+  if (name === 'meal') loadMeals()
+  if (name === 'customerMeal') loadCustomerMeals()
+})
 
 onMounted(() => {
   loadFoods()

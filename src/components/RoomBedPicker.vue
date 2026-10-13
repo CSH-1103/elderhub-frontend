@@ -7,12 +7,18 @@
       :loading="roomLoading"
       @change="onRoomChange"
     >
-      <el-option
-        v-for="room in rooms"
-        :key="room.roomNo"
-        :label="`${room.roomFloor}层 ${room.roomNo} 房`"
-        :value="room.roomNo"
-      />
+      <el-option-group
+        v-for="group in groupedRooms"
+        :key="group.floor"
+        :label="`${group.floor}层`"
+      >
+        <el-option
+          v-for="room in group.rooms"
+          :key="room.roomNo"
+          :label="`${room.roomNo} 房`"
+          :value="room.roomNo"
+        />
+      </el-option-group>
     </el-select>
     <el-select
       :model-value="bedId"
@@ -33,11 +39,11 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { listRooms, listFreeBeds } from '@/api/bed'
 
 /**
- * 房间 → 空闲床位 两级联动选择器
+ * 房间 → 空闲床位 两级联动选择器（房间按楼层分组）
  * v-model:roomNo / v-model:bedId
  */
 const props = defineProps({
@@ -50,6 +56,18 @@ const rooms = ref([])
 const freeBeds = ref([])
 const roomLoading = ref(false)
 const bedLoading = ref(false)
+
+// 按楼层分组
+const groupedRooms = computed(() => {
+  const map = new Map()
+  for (const room of rooms.value) {
+    if (!map.has(room.roomFloor)) map.set(room.roomFloor, [])
+    map.get(room.roomFloor).push(room)
+  }
+  return [...map.entries()]
+    .sort((a, b) => String(a[0]).localeCompare(String(b[0]), 'zh-Hans-CN', { numeric: true }))
+    .map(([floor, list]) => ({ floor, rooms: list }))
+})
 
 listRooms()
   .then((data) => {

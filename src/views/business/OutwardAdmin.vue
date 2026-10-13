@@ -15,15 +15,7 @@
     </div>
 
     <el-table v-loading="loading" :data="list" border stripe>
-      <!-- 已知后端缺陷：OutwardVO 无 id、customerName 恒为 null、customerId 实际为记录 id -->
-      <el-table-column prop="customerId" label="记录ID">
-        <template #default="{ row }">
-          <span>{{ row.customerId ?? '—' }}</span>
-          <el-tooltip content="TODO: 后端 OutwardVO 缺陷——无独立 id 字段，customerId 当前实为记录 id">
-            <el-icon style="margin-left: 4px; color: #e6a23c; cursor: help"><Warning /></el-icon>
-          </el-tooltip>
-        </template>
-      </el-table-column>
+      <el-table-column prop="id" label="记录ID" width="80" />
       <el-table-column label="客户姓名" min-width="100">
         <template #default="{ row }">{{ row.customerName || '—' }}</template>
       </el-table-column>
@@ -122,7 +114,7 @@ function search() {
 }
 
 function openAudit(row) {
-  auditForm.recordId = row.customerId // 注意：当前 customerId 实为记录 id（后端 VO 缺陷）
+  auditForm.recordId = row.id
   auditForm.auditStatus = 1
   auditForm.auditPerson = userStore.username
   auditVisible.value = true

@@ -16,7 +16,7 @@
     </div>
 
     <el-table v-loading="loading" :data="list" border stripe>
-      <el-table-column prop="customerId" label="记录ID" width="90" />
+      <el-table-column prop="id" label="记录ID" width="90" />
       <el-table-column label="客户姓名" min-width="100">
         <template #default="{ row }">{{ row.customerName || '—' }}</template>
       </el-table-column>
@@ -173,7 +173,7 @@ async function doSave() {
 
 async function doReturn(row) {
   await ElMessageBox.confirm('确认登记该客户回院？', '登记回院')
-  await nurseReturnOutward(row.customerId) // 注意：当前 customerId 实为记录 id（后端 VO 缺陷）
+  await nurseReturnOutward(row.id)
   ElMessage.success('已登记回院')
   load()
 }

@@ -5,6 +5,11 @@
       <el-tab-pane label="在住客户" name="live">
         <div class="table-toolbar">
           <div class="toolbar-filters">
+            <el-select v-model="liveQuery.customerType" style="width: 130px" @change="loadLive">
+              <el-option label="自理老人" :value="1" />
+              <el-option label="护理老人" :value="2" />
+              <el-option label="全部" :value="0" />
+            </el-select>
             <el-input
               v-model="liveQuery.customerName"
               placeholder="客户姓名"
@@ -34,7 +39,12 @@
           <el-table-column label="操作" width="160" fixed="right">
             <template #default="{ row }">
               <el-button link type="warning" @click="doGoOut(row)">外出</el-button>
-              <el-button link type="success" @click="doComeback(row)">回院</el-button>
+              <el-button
+                v-if="row.statusMsg === '外出'"
+                link
+                type="success"
+                @click="doComeback(row)"
+              >回院</el-button>
               <el-button link type="primary" @click="goRecords(row)">护理记录</el-button>
             </template>
           </el-table-column>
@@ -67,7 +77,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="年龄" prop="customer_age">
-                <el-input-number v-model="form.customer_age" :min="0" :max="150" style="width: 100%" />
+                <el-input-number v-model="form.customer_age" :min="0" :max="150" style="width: 100%" disabled placeholder="由出生日期自动计算" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -81,6 +91,11 @@
             <el-col :span="12">
               <el-form-item label="出生日期" prop="birthday">
                 <el-date-picker v-model="form.birthday" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="家属">
+                <el-input v-model="form.family_member" placeholder="家属姓名" maxlength="20" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -104,7 +119,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="楼栋">
-                <el-input v-model="form.building_no" placeholder="如：1栋" />
+                <el-input v-model="form.building_no" disabled placeholder="固定 606" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -344,7 +359,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Refresh, Search } from '@element-plus/icons-vue'
@@ -363,7 +378,7 @@ const tab = ref('live')
 const saving = ref(false)
 
 /* ---------- Tab1 在住客户 ---------- */
-const liveQuery = reactive({ customerName: '', status: 1, pageNum: 1, pageSize: 10 })
+const liveQuery = reactive({ customerName: '', customerType: 1, status: 1, pageNum: 1, pageSize: 10 })
 const liveList = ref([])
 const liveTotal = ref(0)
 const liveLoading = ref(false)
@@ -406,12 +421,13 @@ const emptyForm = () => ({
   customer_sex: 0,
   idcard: '',
   room_no: '',
-  building_no: '',
+  building_no: '606',
   bed_id: null,
   checkin_date: '',
   expiration_date: '',
   contact_tel: '',
   birthday: '',
+  family_member: '',
   height: '',
   weight: '',
   blood_type: '',
@@ -424,6 +440,17 @@ const formRules = {
   customer_sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
   checkin_date: [{ required: true, message: '请选择入住日期', trigger: 'change' }],
 }
+
+// 年龄根据出生日期自动计算（后端保存时也会兜底重算）
+watch(() => form.birthday, (val) => {
+  if (!val) { form.customer_age = null; return }
+  const birth = new Date(val)
+  const now = new Date()
+  let age = now.getFullYear() - birth.getFullYear()
+  const m = now.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--
+  form.customer_age = age
+})
 
 async function doSave() {
   await formRef.value.validate()

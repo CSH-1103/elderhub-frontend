@@ -5,9 +5,9 @@ import request from './request'
  * VO 为驼峰：{ id, customerId, itemId, userId, nursingName, nursingTime, nursingContent, nursingCount }
  */
 
-/** 管家：录入护理记录（NurseDailyController 版本，同时扣减客户项目次数），userId 为 query */
+/** 管家：录入护理记录（后端按 DTO 内 userId 归属，同时扣减客户项目次数） */
 export const butlerSaveRecord = (dto, userId) =>
-  request.post('/nurse/nurse-record/save', dto, { params: { userId } })
+  request.post('/nurse/nurse-record-mine/save', { ...dto, userId })
 
 /** 管家：查看自己客户的护理记录（/nurse/nurse-record-mine，后端按 userId 返回） */
 export const butlerListRecords = (customerId, userId) =>
