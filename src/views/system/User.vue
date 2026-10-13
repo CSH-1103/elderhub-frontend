@@ -66,7 +66,7 @@
             <el-input v-model="form.username" />
           </el-form-item>
           <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" type="password" show-password />
+            <el-input v-model="form.password" type="password" show-password placeholder="留空默认手机号后6位" />
           </el-form-item>
         </template>
         <el-form-item label="性别" prop="sex">
@@ -121,7 +121,8 @@ const form = reactive({ id: null, nickname: '', username: '', password: '', sex:
 const rules = {
   nickname: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  // 密码非必填：留空时后端默认手机号后6位
+  password: [],
   roleId: [{ required: true, message: '请选择角色', trigger: 'change' }],
 }
 

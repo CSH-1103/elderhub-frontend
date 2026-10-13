@@ -52,6 +52,31 @@ export const updateMeal = (data) => request.put('/admin/meal/update', data)
 /** 删除膳食（逻辑删除） */
 export const removeMeal = (id) => request.delete(`/admin/meal/remove/${id}`)
 
+/** 修改膳食状态（1:启用 2:停用） */
+export const updateMealStatus = (id, status) =>
+  request.put('/admin/meal/update-status', null, { params: { id, status } })
+
+/* ============ 客户膳食配置 /admin/customer-meal ============ */
+
+/**
+ * 分页查询客户膳食配置
+ * params: { pageNum?, pageSize?, customerId?, customerName? }
+ * VO 驼峰：{ id, customerId, customerName, weekDay, mealType, foodId, foodName }
+ */
+export async function listCustomerMeals(params) {
+  const data = await request.get('/admin/customer-meal/list', { params })
+  return normalizePage(data)
+}
+
+/** 新增客户膳食配置 body: { customer_id, week_day, meal_type, food_id } */
+export const saveCustomerMeal = (data) => request.post('/admin/customer-meal/save', data)
+
+/** 修改客户膳食配置 body: 必须带 id */
+export const updateCustomerMeal = (data) => request.put('/admin/customer-meal/update', data)
+
+/** 删除客户膳食配置（逻辑删除） */
+export const removeCustomerMeal = (id) => request.delete(`/admin/customer-meal/remove/${id}`)
+
 /* ============ 客户饮食喜好 /admin/customer-preference ============ */
 
 /**

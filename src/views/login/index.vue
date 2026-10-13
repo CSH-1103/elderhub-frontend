@@ -94,7 +94,15 @@ async function doLogin() {
     const data = await login({ username: loginForm.username, password: loginForm.password })
     userStore.setLogin(data)
     ElMessage.success(`欢迎，${data.username}`)
-    router.push(route.query.redirect || '/dashboard')
+    // redirect 目标若超出当前角色权限则回退到 dashboard，避免守卫弹"无权限访问该页面"
+    const target = route.query.redirect || '/dashboard'
+    const resolved = router.resolve(target)
+    const role = userStore.isAdmin ? 'ADMIN' : 'USER'
+    if (resolved.meta?.roles && !resolved.meta.roles.includes(role)) {
+      router.push('/dashboard')
+    } else {
+      router.push(target)
+    }
   } finally {
     loading.value = false
   }
