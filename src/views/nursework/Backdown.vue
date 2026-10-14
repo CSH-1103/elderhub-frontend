@@ -47,7 +47,7 @@
     <el-dialog v-model="addVisible" title="新增退住申请" width="480px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="客户" prop="customerId">
-          <CustomerPicker v-model="form.customerId" source="live" />
+          <CustomerPicker v-model="form.customerId" source="live" :apply-type="1" />
         </el-form-item>
         <el-form-item label="退住类型" prop="retreatType">
           <el-radio-group v-model="form.retreatType">

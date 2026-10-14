@@ -48,11 +48,7 @@
       <el-table-column prop="bedDetails" label="备注" min-width="140" show-overflow-tooltip>
         <template #default="{ row }">{{ fmtOrDash(row.bedDetails) }}</template>
       </el-table-column>
-      <el-table-column label="状态" width="100">
-        <template #default="{ row }">
-          <StatusTag :value="row.status" :dict="BED_USE_STATUS" />
-        </template>
-      </el-table-column>
+      <el-table-column prop="statusMsg" label="状态" width="100" />
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openEndDate(row)">改到期日</el-button>
@@ -119,10 +115,8 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { listDetails, updateDetails, transferBed } from '@/api/bed'
-import { BED_USE_STATUS } from '@/utils/constants'
 import { fmtDate, fmtOrDash } from '@/utils/format'
 import Pagination from '@/components/Pagination.vue'
-import StatusTag from '@/components/StatusTag.vue'
 import RoomBedPicker from '@/components/RoomBedPicker.vue'
 
 const query = reactive({ customerName: '', roomNo: '', startDate: '', status: 1, pageNum: 1, pageSize: 10 })

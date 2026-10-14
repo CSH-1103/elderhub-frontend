@@ -94,7 +94,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="家属">
+              <el-form-item label="家属" prop="family_member">
                 <el-input v-model="form.family_member" placeholder="家属姓名" maxlength="20" />
               </el-form-item>
             </el-col>
@@ -147,7 +147,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="血型">
+              <el-form-item label="血型" prop="blood_type">
                 <el-select v-model="form.blood_type" clearable style="width: 100%">
                   <el-option v-for="t in ['A', 'B', 'AB', 'O']" :key="t" :label="t + '型'" :value="t" />
                 </el-select>
@@ -438,7 +438,20 @@ const form = reactive(emptyForm())
 const formRules = {
   customer_name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   customer_sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
+  birthday: [{ required: true, message: '请选择出生日期', trigger: 'change' }],
+  idcard: [
+    { required: true, message: '请输入身份证号', trigger: 'blur' },
+    { pattern: /^\d{17}[\dXx]$/, message: '请输入正确的18位身份证号', trigger: 'blur' },
+  ],
+  family_member: [{ required: true, message: '请输入家属姓名', trigger: 'blur' }],
+  contact_tel: [
+    { required: true, message: '请输入联系电话', trigger: 'blur' },
+    { pattern: /^1\d{10}$/, message: '请输入正确的11位手机号', trigger: 'blur' },
+  ],
+  blood_type: [{ required: true, message: '请选择血型', trigger: 'change' }],
+  bed_id: [{ required: true, message: '请选择房间和床位', trigger: 'change' }],
   checkin_date: [{ required: true, message: '请选择入住日期', trigger: 'change' }],
+  expiration_date: [{ required: true, message: '请选择合同到期日期', trigger: 'change' }],
 }
 
 // 年龄根据出生日期自动计算（后端保存时也会兜底重算）
