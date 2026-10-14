@@ -113,6 +113,7 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
 const emptyForm = () => ({
+  id: null,
   serial_number: '',
   nursing_name: '',
   service_price: 0,
